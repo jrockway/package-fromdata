@@ -44,7 +44,11 @@ Given a data structure like this:
               baz     => [ { new => 'Foo::Bar::Baz' } ],
           },
           functions => {
-              map_foo_bar => [ 'foo' => 'bar', 'bar' => 'foo' ]
+              map_foo_bar => [ 'foo' => 'bar', 'bar' => 'foo' ],
+              context     => {
+                  scalar => 'called in scalar context',
+                  list   => [qw/called in list context/],
+              }
           }
           variables => {
               "$VERSION" => '42',           # $Foo::Bar::VERSION
