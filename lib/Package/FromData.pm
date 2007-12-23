@@ -2,6 +2,14 @@ package Package::FromData;
 use strict;
 use warnings;
 use feature ':5.10';
+use base 'Exporter';
+our @EXPORT = qw/create_package_from_data/;
+
+sub create_package_from_data {
+    my $definition = shift;
+    die 'please pass create_package_from_data a hashref' 
+      unless ref $definition && ref $definition eq 'HASH';
+}
 
 1;
 __END__
@@ -122,6 +130,11 @@ the definion:
 
 To return a hashref, just say C<< [{ ... }] >>.
 
+Finally, the function definition array may be a single hash containing
+a method => package pair, which means to always call C<<
+package->method >> and return the result.  This makes it possible for
+packages defined with C<Package::FromData> to be nested.
+
 =head3 methods
 
 Like functions, but the first argument (<$self>) is ignored.
@@ -152,7 +165,7 @@ Probably.  Report them to RT.
 
 =head1 CODE REPOSITORY
 
-The git repository is at L<http://git.jrock.us/> and can be cloned:
+The git repository is at L<http://git.jrock.us/> and can be cloned with:
 
     git clone git://git.jrock.us/Package-FromData
 
