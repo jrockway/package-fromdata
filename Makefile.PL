@@ -1,17 +1,10 @@
 use inc::Module::Install;
 
-my $module = 'Package::FromData';
+name 'Package-FromData';
+all_from 'lib/Package/FromData.pm';
 
-my $dist   = $module;
-$dist =~ s/::/-/g;
-name($dist);
-
-my @path = split '::', $module;
-all_from('lib/'. (join '/',@path). '.pm');
-
-build_requires 'Catalyst::Runtime';
-build_requires 'Test::WWW::Mechanize::Catalyst';
 build_requires 'Test::More';
+build_requires 'Test::Exception';
 build_requires 'ok';
 
 WriteAll();
