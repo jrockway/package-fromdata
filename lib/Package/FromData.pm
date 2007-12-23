@@ -5,10 +5,48 @@ use feature ':5.10';
 use base 'Exporter';
 our @EXPORT = qw/create_package_from_data/;
 
+sub _must_be_hash($$) {
+    die $_[0] unless ref $_[1] && ref $_[1] eq 'HASH';
+}
+
 sub create_package_from_data {
-    my $definition = shift;
-    die 'please pass create_package_from_data a hashref' 
-      unless ref $definition && ref $definition eq 'HASH';
+    my $packages = shift;
+    _must_be_hash 'please pass create_package_from_data a hashref', $packages;
+
+    _must_be_hash 'definition for package must be a hashref', $_ 
+      for values %$packages;
+    
+    foreach my $package (keys %$packages){
+        my $def = $packages->{$package};
+        
+        # create package
+        _create_package($package);
+        
+        # add constructors
+        foreach my $const (@{$def->{constructors}||[]}){
+            _add_constructor($package, $const);
+        }
+        
+    }
+}
+
+sub _create_package($){
+    my $name = shift;
+    die "invalid package name '$name'" 
+      unless $name =~ /^\w(?:\w|::)+\w$/;
+    eval "package $name";
+}
+
+sub _add_constructor($$){
+    my ($package, $name) = @_;
+    _add_function_to($package, $name, 
+                     sub { my $class = shift; return bless {}, $class });
+}
+
+sub _add_function_to($$&){
+    my ($package, $function_name, $function_body) = @_;
+    no strict 'refs';
+    *{"${package}::${function_name}"} = $function_body;
 }
 
 1;
