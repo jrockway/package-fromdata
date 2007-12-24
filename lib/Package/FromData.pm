@@ -4,10 +4,22 @@ use warnings;
 use feature ':5.10';
 use base 'Exporter';
 our @EXPORT = qw/create_package_from_data/;
+use Readonly;
+use Carp;
 
-sub _must_be_hash($$) {
-    die $_[0] unless ref $_[1] && ref $_[1] eq 'HASH';
+Readonly my %SIGIL_TYPE_MAP => (
+    '$' => 'SCALAR',
+    '@' => 'ARRAY',
+    '%' => 'HASH',
+    '*' => 'GLOB',
+);
+
+sub _must_be($$$) {
+    croak $_[0] unless ref $_[1] && ref $_[1] eq $_[2];
 }
+
+sub _must_be_hash($$)  { &_must_be(@_[0,1], 'HASH' ) }
+sub _must_be_array($$) { &_must_be(@_[0,1], 'ARRAY') }
 
 sub create_package_from_data {
     my $packages = shift;
@@ -26,27 +38,62 @@ sub create_package_from_data {
         foreach my $const (@{$def->{constructors}||[]}){
             _add_constructor($package, $const);
         }
+
+        # add variables
+        my $sigils = '['. (join '', keys %SIGIL_TYPE_MAP). ']';
+        foreach my $variable (keys %{$def->{variables}||{}}){
+            if($variable !~ /^(?<sigil>$sigils)(?<varname>\w+)$/o){
+                die "'$variable' doesn't look like a variable name";
+            }
+            
+            my $sigil   = $+{sigil}; # XXX infer from reftype?
+            my $varname = $+{varname};
+            my $value   = $def->{variables}{$variable};
+            $value = \"$value" if !ref $value; # make scalar a SCALAR
+
+            _must_be "value for '$variable' must be a ".
+              $SIGIL_TYPE_MAP{$sigil}. ' reference',
+                $value, $SIGIL_TYPE_MAP{$sigil};
+            _add_variable_to($package, $varname, $value);
+        }
         
+        # add functions
+
+        # add methods
+
+        # add static methods
+
     }
 }
 
-sub _create_package($){
+sub _create_package {
     my $name = shift;
     die "invalid package name '$name'" 
       unless $name =~ /^\w(?:\w|::)+\w$/;
     eval "package $name";
 }
 
-sub _add_constructor($$){
+sub _add_constructor {
     my ($package, $name) = @_;
-    _add_function_to($package, $name, 
-                     sub { my $class = shift; return bless {}, $class });
+    _add_function_to($package, $name, sub { 
+        my $class = shift; 
+        return bless {}, $class 
+    });
 }
 
-sub _add_function_to($$&){
-    my ($package, $function_name, $function_body) = @_;
+sub _add_function_to { # package, subname, coderef
+    _fuck_with_glob(@_);
+}
+
+sub _add_variable_to { # package, varname, value
+    _fuck_with_glob(@_);
+}
+
+sub _fuck_with_glob {
+    my ($package, $variable_name, $value) = @_;
+    die "WHOA THERE, $value isn't a ref" unless ref $value;
     no strict 'refs';
-    *{"${package}::${function_name}"} = $function_body;
+    *{"${package}::${variable_name}"} = $value;
 }
 
 1;
