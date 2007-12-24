@@ -60,8 +60,8 @@ sub create_package_from_data {
         # add functions
         foreach my $function (keys %{$def->{functions}||{}}){
             my $fdef = $def->{functions}{$function};
-            given($fdef){
-                when(!ref){
+            given(ref $fdef){
+                default {
                     # constant function
                     _add_function_to($package, $function, sub { $fdef });
                 }
