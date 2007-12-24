@@ -59,13 +59,9 @@ sub create_package_from_data {
         
         # add functions
         foreach my $function (keys %{$def->{functions}||{}}){
-            my $fdef = $def->{functions}{$function};
-            given(ref $fdef){
-                default {
-                    # constant function
-                    _add_function_to($package, $function, sub { $fdef });
-                }
-            }
+            _add_function_from_definition($package, $function,
+                                          $def->{functions}{$function});
+            
         }
         
         # add methods
@@ -88,6 +84,59 @@ sub _add_constructor {
         my $class = shift; 
         return bless {}, $class 
     });
+}
+
+sub _add_function_from_definition {
+    my ($package, $function, $fdef) = @_;
+    given(ref $fdef){
+        when('ARRAY'){
+            my @fdef = @$fdef;
+
+            # determine default
+            my $default;
+            $default = pop @fdef if @fdef % 2 == 1;
+            
+            my @rules;
+            for(my $i = 0; $i < @fdef; $i+=2){
+                my ($in, $out) = @fdef[$i,$i+1];
+                push @rules, _mk_matcher($in, $out);
+            }
+            
+            my $func = sub {
+                for(@rules){
+                    my @result = $_->(@_);
+                    if(@result){
+                        return @result if(wantarray);
+                        return $result[0];
+                    }
+                }
+                return $default || die "$function cannot handle [@_] as input";
+            };
+            _add_function_to($package, $function, $func);
+
+        }
+        default {
+            # constant function
+            _add_constant_function_to($package, $function, $fdef);
+        }
+    }
+}
+
+sub _mk_matcher {
+    my ($in, $out) = @_;
+    my @in  = @$in;
+    my @out = ($out);
+    @out = @$out if ref $out eq 'ARRAY';
+    
+    return sub {
+        return @out if (@_ ~~ @in);
+        return;
+    }
+}
+
+sub _add_constant_function_to {
+    my ($package, $function, $value) = @_;
+    _add_function_to($package, $function, sub { $value });
 }
 
 sub _add_function_to { # package, subname, coderef
