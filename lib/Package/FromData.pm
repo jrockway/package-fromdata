@@ -58,7 +58,16 @@ sub create_package_from_data {
         }
         
         # add functions
-
+        foreach my $function (keys %{$def->{functions}||{}}){
+            my $fdef = $def->{functions}{$function};
+            given($fdef){
+                when(!ref){
+                    # constant function
+                    _add_function_to($package, $function, sub { $fdef });
+                }
+            }
+        }
+        
         # add methods
 
         # add static methods
