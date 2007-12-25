@@ -134,6 +134,12 @@ sub _add_function_from_definition {
                             return $result[0];
                         }
                     }
+                    if (ref $default eq 'ARRAY'){
+                        if(wantarray){
+                            return @$default;
+                        }
+                        return $default->[0];
+                    }
                     return $default || 
                       die "$function cannot handle [@_] as input";
                 }, $shift, $precondition);
@@ -156,9 +162,8 @@ sub _mk_matcher {
     @out = @$out if ref $out eq 'ARRAY';
     
     return sub {
-        if (eq_deeply [@_], [@in]){
-            return @out if(wantarray);
-            return $out[0];
+         if (eq_deeply [@_], [@in]){
+            return @out; # wantarray logic handled above
         }
         return;
     }
@@ -303,9 +308,10 @@ reference to a list, nest an arrayrf in the arrayref; C<foo('bar') =
 ['baz']>.
 
 To return different values in scalar or list context, pass a hash as
-the definion:
+the output definition:
 
-    { scalar => '42', list => [qw/contents of the list/] }
+    [ [input] => { scalar => '42', list => [qw/contents of the list/] },
+      ... ]
 
 To return a hashref, just say C<< [{ ... }] >>.
 
