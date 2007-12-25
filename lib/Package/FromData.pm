@@ -93,27 +93,42 @@ sub _add_function_from_definition {
     given(ref $fdef){
         when('ARRAY'){
             my @fdef = @$fdef;
-
+            my $func;
+            
             # determine default
             my $default;
             $default = pop @fdef if @fdef % 2 == 1;
             
-            my @rules;
-            for(my $i = 0; $i < @fdef; $i+=2){
-                my ($in, $out) = @fdef[$i,$i+1];
-                push @rules, _mk_matcher($in, $out);
+            # def is of the form { method => 'Class' }
+            if(!@fdef && ref $default eq 'HASH' &&
+                 scalar keys %$default == 1){
+                my ($method, $class) = %$default;
+                $func = sub {
+                    return $class->$method;
+                }
             }
             
-            my $func = sub {
-                for(@rules){
-                    my @result = $_->(@_);
-                    if(@result){
-                        return @result if(wantarray);
-                        return $result[0];
-                    }
+            # def is a [ [expected @_] => output, ... ] seq
+            else {
+                my @rules;
+                for(my $i = 0; $i < @fdef; $i+=2){
+                    my ($in, $out) = @fdef[$i,$i+1];
+                    push @rules, _mk_matcher($in, $out);
                 }
-                return $default || die "$function cannot handle [@_] as input";
-            };
+                
+                $func = sub {
+                    for(@rules){
+                        my @result = $_->(@_);
+                        if(@result){
+                            return @result if(wantarray);
+                            return $result[0];
+                        }
+                    }
+                    return $default || 
+                      die "$function cannot handle [@_] as input";
+                };
+            }
+            
             _add_function_to($package, $function, $func);
 
         }
@@ -285,7 +300,7 @@ the definion:
 To return a hashref, just say C<< [{ ... }] >>.
 
 Finally, the function definition array may be a single hash containing
-a method => package pair, which means to always call C<<
+a C<method => package> pair, which means to always call C<<
 package->method >> and return the result.  This makes it possible for
 packages defined with C<Package::FromData> to be nested.
 

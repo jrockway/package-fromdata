@@ -2,11 +2,12 @@
 
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Package::FromData;
 use Test::Exception;
 
 my $data = {
+    'Foo' => { constructors => ['new'] },
     'Test::Package' => {
         functions => {
             constant => '42',
@@ -24,6 +25,7 @@ my $data = {
                 [[qw/foo baz/]]  => 'foo baz',
                 'fallback',
             ],
+            new_foo => [ { new => 'Foo' } ],
         },
     },
 };
@@ -46,3 +48,6 @@ is Test::Package::subtract(2, 2), 42;
 is Test::Package::reftest(), 'fallback';
 is Test::Package::reftest({foo => 'bar'}), 'foo bar';
 is Test::Package::reftest([foo => 'baz']), 'foo baz';
+
+isa_ok Foo->new(), 'Foo';
+isa_ok Test::Package::new_foo(123), 'Foo';
