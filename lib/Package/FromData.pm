@@ -4,8 +4,10 @@ use warnings;
 use feature ':5.10';
 use base 'Exporter';
 our @EXPORT = qw/create_package_from_data/;
+
 use Readonly;
 use Carp;
+use Test::Deep::NoTest qw(eq_deeply);
 
 Readonly my %SIGIL_TYPE_MAP => (
     '$' => 'SCALAR',
@@ -129,7 +131,10 @@ sub _mk_matcher {
     @out = @$out if ref $out eq 'ARRAY';
     
     return sub {
-        return @out if (@_ ~~ @in);
+        if (eq_deeply [@_], [@in]){
+            return @out if(wantarray);
+            return $out[0];
+        }
         return;
     }
 }
@@ -261,13 +266,15 @@ definiton array pairs.
 The function definition array is a list of pairs followed by an
 optional single value.  The pairs are treated like a @_ => result of
 function hash, and the optional single element is used as a default
-return value.
+return value.  The expected input (@_) can be deep Perl data
+structures; an input => output pair matches if the C<\@_> in the
+program C<Test::Deep::NoTest::eq_deeply>s the input rule you specify.
 
 The pairs are of the form ARRAYREF => SCALAR|ARRAYREF|SEPECIAL.  To make
 C<function('foo','bar')> return C<baz>, you would add a pair like C<[
-'foo', 'bar' ], 'baz'> to the definition hash.  To return a bare list,
-use a arrayref; C<['foo','bar'], ['foo','bar']>.  To return a
-reference to a list, nest an arrayref in the arrayref; C<foo('bar') =
+'foo', 'bar' ] => 'baz'> to the definition hash.  To return a bare list,
+use a arrayref; C<['foo','bar'] => ['foo','bar']>.  To return a
+reference to a list, nest an arrayrf in the arrayref; C<foo('bar') =
 ['baz']>.
 
 To return different values in scalar or list context, pass a hash as

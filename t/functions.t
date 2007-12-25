@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 12;
 use Package::FromData;
 use Test::Exception;
 
@@ -18,6 +18,11 @@ my $data = {
                 [1, 2] => '-1',
                 [2, 1] => '1',
                 42
+            ],
+            reftest => [
+                [{foo => 'bar'}] => 'foo bar',
+                [[qw/foo baz/]]  => 'foo baz',
+                'fallback',
             ],
         },
     },
@@ -37,3 +42,7 @@ is Test::Package::subtract(), 42;
 is Test::Package::subtract(1, 2), '-1';
 is Test::Package::subtract(2, 1), '1';
 is Test::Package::subtract(2, 2), 42;
+
+is Test::Package::reftest(), 'fallback';
+is Test::Package::reftest({foo => 'bar'}), 'foo bar';
+is Test::Package::reftest([foo => 'baz']), 'foo baz';
