@@ -88,8 +88,17 @@ sub _add_constructor {
     });
 }
 
+sub _mk_sub {
+    my ($body, $shift, $precondition) = @_;
+    return sub {
+        do { shift for (1..$shift) } if $shift; # kill unnecessary args
+        $precondition->(@_)          if $precondition;
+        return $body->(@_)           if $body;
+    }
+}
+
 sub _add_function_from_definition {
-    my ($package, $function, $fdef) = @_;
+    my ($package, $function, $fdef, $shift, $precondition) = @_;
     given(ref $fdef){
         when('ARRAY'){
             my @fdef = @$fdef;
@@ -103,9 +112,10 @@ sub _add_function_from_definition {
             if(!@fdef && ref $default eq 'HASH' &&
                  scalar keys %$default == 1){
                 my ($method, $class) = %$default;
-                $func = sub {
+ 
+                $func = _mk_sub( sub {
                     return $class->$method;
-                }
+                }, $shift, $precondition);
             }
             
             # def is a [ [expected @_] => output, ... ] seq
@@ -116,7 +126,7 @@ sub _add_function_from_definition {
                     push @rules, _mk_matcher($in, $out);
                 }
                 
-                $func = sub {
+                $func = _mk_sub( sub {
                     for(@rules){
                         my @result = $_->(@_);
                         if(@result){
@@ -126,7 +136,7 @@ sub _add_function_from_definition {
                     }
                     return $default || 
                       die "$function cannot handle [@_] as input";
-                };
+                }, $shift, $precondition);
             }
             
             _add_function_to($package, $function, $func);
