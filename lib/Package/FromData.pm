@@ -293,12 +293,12 @@ packages defined with C<Package::FromData> to be nested.
 
 Like functions, but the first argument (<$self>) is ignored.
 
-=head2 static_methods
+=head3 static_methods
 
 Like methods, but can be invoked against the class name instead of 
 and instance of the class.
 
-=head2 variables
+=head3 variables
 
 A hash of variable name (including sigil) / value pairs.  Keys
 starting with @ or % must point to the appropriate reference type.
