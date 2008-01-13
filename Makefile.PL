@@ -6,6 +6,7 @@ all_from 'lib/Package/FromData.pm';
 requires 'Exporter';
 requires 'Readonly';
 requires 'Test::Deep::NoTest';
+build_requires 'Scalar::Util';
 build_requires 'Test::Exception';
 build_requires 'Test::More';
 build_requires 'ok';
