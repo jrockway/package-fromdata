@@ -234,11 +234,11 @@ Given a data structure like this:
                   scalar => 'called in scalar context',
                   list   => [qw/called in list context/],
               }
-          }
+          },
           variables => {
-              "$VERSION" => '42',           # $Foo::Bar::VERSION
-              "@ISA"     => ['Foo'],        # @Foo::Bar::ISA
-              "%FOO"     => {Foo => 'Bar'}, # %Foo::Bar::FOO
+              '$VERSION' => '42',           # $Foo::Bar::VERSION
+              '@ISA'     => ['Foo'],        # @Foo::Bar::ISA
+              '%FOO'     => {Foo => 'Bar'}, # %Foo::Bar::FOO
           },
       },
   };
