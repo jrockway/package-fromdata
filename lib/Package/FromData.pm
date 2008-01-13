@@ -128,7 +128,7 @@ sub _add_function_from_definition {
                 
                 $func = _mk_sub( sub {
                     for(@rules){
-                        my @result = $_->(@_);
+                        my @result = $_->(wantarray, @_);
                         if(@result){
                             return @result if(wantarray);
                             return $result[0];
@@ -162,8 +162,15 @@ sub _mk_matcher {
     @out = @$out if ref $out eq 'ARRAY';
     
     return sub {
-         if (eq_deeply [@_], [@in]){
-            return @out; # wantarray logic handled above
+        my $wantarray = shift;
+        if (eq_deeply [@_], [@in]){
+            if(ref $out eq 'HASH'){
+                if($wantarray){
+                    return @{$out->{list}||$out->{array}};
+                }
+                return $out->{scalar};
+            }
+            return @out;
         }
         return;
     }
@@ -184,7 +191,7 @@ sub _add_variable_to { # package, varname, value
 
 sub _fuck_with_glob {
     my ($package, $variable_name, $value) = @_;
-    die "WHOA THERE, $value isn't a ref" unless ref $value;
+    die "WHOA THERE, '$value' isn't a ref" unless ref $value;
     no strict 'refs';
     *{"${package}::${variable_name}"} = $value;
 }

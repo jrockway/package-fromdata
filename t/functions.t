@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 use Package::FromData;
 use Test::Exception;
 
@@ -30,6 +30,12 @@ my $data = {
                 'fallback',
             ],
             new_foo => [ { new => 'Foo' } ],
+            context => [
+                [1,2] => { 
+                    scalar => '3',
+                    list   => [1,2,3,4],
+                },
+            ],
         },
     },
 };
@@ -58,6 +64,8 @@ is_deeply [Test::Package::list(1337)], [3,4];
 is Test::Package::list(1,2), 1;
 is Test::Package::list(1337), 3;
 
-
 isa_ok Foo->new(), 'Foo';
 isa_ok Test::Package::new_foo(123), 'Foo';
+
+is_deeply [Test::Package::context(1,2)], [1,2,3,4];
+is Test::Package::context(1,2), 3;
