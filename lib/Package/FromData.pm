@@ -7,6 +7,7 @@ our @EXPORT = qw/create_package_from_data/;
 
 use Readonly;
 use Carp;
+use Scalar::Util qw(blessed);
 use Test::Deep::NoTest qw(eq_deeply);
 
 Readonly my %SIGIL_TYPE_MAP => (
@@ -67,6 +68,14 @@ sub create_package_from_data {
         }
         
         # add methods
+        foreach my $method (keys %{$def->{methods}||{}}){
+            _add_function_from_definition(
+                $package, $method,
+                $def->{methods}{$method},
+                1,
+                sub { croak 'must be called as a method' unless blessed $_[0] },
+            );
+        }
 
         # add static methods
 
@@ -91,8 +100,8 @@ sub _add_constructor {
 sub _mk_sub {
     my ($body, $shift, $precondition) = @_;
     return sub {
-        do { shift for (1..$shift) } if $shift; # kill unnecessary args
         $precondition->(@_)          if $precondition;
+        do { shift for (1..$shift) } if $shift; # kill unnecessary args
         return $body->(@_)           if $body;
     }
 }
