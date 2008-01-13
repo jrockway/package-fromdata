@@ -78,7 +78,13 @@ sub create_package_from_data {
         }
 
         # add static methods
-
+        foreach my $method (keys %{$def->{static_methods}||{}}){
+            _add_function_from_definition(
+                $package, $method,
+                $def->{static_methods}{$method},
+                1
+            );
+        }
     }
 }
 
