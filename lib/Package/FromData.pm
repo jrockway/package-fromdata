@@ -1,7 +1,8 @@
 package Package::FromData;
 use strict;
 use warnings;
-use feature ':5.10';
+use 5.010;
+
 use base 'Exporter';
 our @EXPORT = qw/create_package_from_data/;
 
@@ -32,7 +33,7 @@ sub create_package_from_data {
 
     _must_be_hash 'definition for package must be a hashref', $_ 
       for values %$packages;
-    
+
     foreach my $package (keys %$packages){
         my $def = $packages->{$package};
         

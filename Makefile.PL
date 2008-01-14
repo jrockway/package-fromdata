@@ -1,5 +1,7 @@
 use inc::Module::Install;
 
+use 5.010; # 5.10 required
+
 name 'Package-FromData';
 all_from 'lib/Package/FromData.pm';
 
