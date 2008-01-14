@@ -326,9 +326,9 @@ structures; an input => output pair matches if the C<\@_> in the
 program C<Test::Deep::NoTest::eq_deeply>s the input rule you specify.
 
 The pairs are of the form ARRAYREF => SCALAR|ARRAYREF|SEPECIAL.  To make
-C<function('foo','bar')> return C<baz>, you would add a pair like C<[
-'foo', 'bar' ] => 'baz'> to the definition hash.  To return a bare list,
-use a arrayref; C<['foo','bar'] => ['foo','bar']>.  To return a
+C<function('foo','bar')> return C<baz>, you would add a pair like C<< [ 
+'foo', 'bar' ] => 'baz' >> to the definition hash.  To return a bare list,
+use a arrayref; C<< ['foo','bar'] => ['foo','bar'] >>.  To return a
 reference to a list, nest an arrayrf in the arrayref; C<foo('bar') =
 ['baz']>.
 
@@ -341,7 +341,7 @@ the output definition:
 To return a hashref, just say C<< [{ ... }] >>.
 
 Finally, the function definition array may be a single hash containing
-a C<method => package> pair, which means to always call C<<
+a C<< method => package >> pair, which means to always call C<<
 package->method >> and return the result.  This makes it possible for
 packages defined with C<Package::FromData> to be nested.
 
