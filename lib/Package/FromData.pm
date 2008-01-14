@@ -5,6 +5,8 @@ use feature ':5.10';
 use base 'Exporter';
 our @EXPORT = qw/create_package_from_data/;
 
+our $VERSION = '0.01';
+
 use Readonly;
 use Carp;
 use Scalar::Util qw(blessed);
